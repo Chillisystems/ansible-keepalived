@@ -1,4 +1,4 @@
- ! Configuration File for keepalived
+! Configuration File for keepalived
 global_defs {
 }
 vrrp_script chk_service {           # Requires keepalived-1.1.13
@@ -6,19 +6,27 @@ vrrp_script chk_service {           # Requires keepalived-1.1.13
         interval 2                      # check every 2 seconds
 }
 vrrp_instance VI_1 {
+
     state {{ keepalived_role }}
-    interface {{ keepalived_shared_iface }}
-    virtual_router_id {{ keepalived_router_id }}
     {% if keepalived_role.lower() == "master" %}
     priority {{ keepalived_priority }}
     {% else %}
     priority {{ keepalived_backup_priority }}
-    {% endif %}   
+    {% endif %}
+
+    {% if keepalived_nopreempt is defined %}
+    nopreempt
+    {% endif %}
+
+    interface {{ keepalived_shared_iface }}
+    virtual_router_id {{ keepalived_router_id }}
+
     advert_int 1
     authentication {
         auth_type PASS
         auth_pass {{ keepalived_auth_pass }}
     }
+
     virtual_ipaddress {
         {{ keepalived_shared_ip }} dev {{ keepalived_shared_iface }} label {{ keepalived_shared_iface }}:0
     }
